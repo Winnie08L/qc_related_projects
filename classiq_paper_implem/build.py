@@ -59,3 +59,40 @@ def renormalised_prob():
 def energy_expectation():
     #expectation of energy E
     ...
+
+def greedy_post_processing(sigma_prime, Q_prime):
+    """
+    Greedy post-processing algorithm for PVSQA.
+
+    Parameters:
+    sigma_prime (np.array): Input spin configuration (values ±1).
+    Q_prime (np.array): Quadratic matrix representing energy function.
+
+    Returns:
+    sigma (np.array): Processed spin configuration (values ±1).
+    """
+
+    # Convert spin configuration to binary
+    x = (sigma_prime + 1) // 2
+    V = len(x)
+
+    f = True
+    while f:
+        delta_Q = np.zeros(V)
+        
+        for i in range(V):
+            # Calculate energy change if we flip x[i]
+            delta_x = 1 - 2 * x[i]
+            delta_Q[i] = delta_x * (Q_prime[i, :] @ x + Q_prime[:, i] @ x - Q_prime[i, i] * x[i])
+
+        # Find the best spin flip
+        j = np.argmin(delta_Q)
+
+        if delta_Q[j] < 0:
+            x[j] = 1 - x[j]  # flip spin
+        else:
+            f = False
+
+    # Convert binary configuration back to spins
+    sigma = 2 * x - 1
+    return sigma
